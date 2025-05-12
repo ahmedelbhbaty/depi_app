@@ -269,6 +269,8 @@ def get_date_features(date):
         'WeekOfYear': date.isocalendar().week
     }
 
+# ... (كل الاستيرادات والاكواد السابقة تبقى كما هي حتى جزء عرض النتائج)
+
 if 'predict' in st.session_state:
     date_features = get_date_features(date_input)
     input_df = pd.DataFrame([date_features])
@@ -276,13 +278,49 @@ if 'predict' in st.session_state:
     try:
         prediction = model.predict(input_df)[0]
         
+        # تعديل لون المربع إلى الأصفر وإضافة زر التحميل
         st.markdown(f"""
-        <div class='card' style='animation: fadeIn 1s;'>
-            <h3 style='color: #4CAF50;'>📅 {date_input.strftime('%Y-%m-%d')}</h3>
-            <h2 style='color: #2196F3;'>Predicted Sales: ${prediction:,.2f}</h2>
+        <div class='card' id='predictionCard' style='
+            animation: fadeIn 1s;
+            background: linear-gradient(135deg, #FFF3B0, #FFD700);
+            border: 2px solid #FFC107;
+            color: #2F4F4F;
+        '>
+            <h3 style='color: #8B8000;'>📅 {date_input.strftime('%Y-%m-%d')}</h3>
+            <h2 style='color: #B8860B;'>Predicted Sales: ${prediction:,.2f}</h2>
             <p>🗓️ {date_input.strftime('%A')} | 📅 Q{date_features['Quarter']}</p>
         </div>
         """, unsafe_allow_html=True)
+
+        # إضافة زر لتحميل الصورة مع أيقونة
+        html(f"""
+        <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+        <script>
+            function downloadCard() {{
+                html2canvas(document.querySelector('#predictionCard')).then(canvas => {{
+                    const link = document.createElement('a');
+                    link.download = 'prediction-{date_input.strftime('%Y-%m-%d')}.png';
+                    link.href = canvas.toDataURL();
+                    link.click();
+                }});
+            }}
+        </script>
+        <button onclick="downloadCard()" style='
+            background: #FFD700;
+            color: #2F4F4F;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            margin-top: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        '>
+            ⬇️ Download as Image
+        </button>
+        """)
+
+        # باقي الكود الخاص بالرسوم البيانية...
 
         # Generate full year data for visualizations
         months = pd.date_range(start=f"{selected_year}-01-01", end=f"{selected_year}-12-31")
