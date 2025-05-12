@@ -13,7 +13,7 @@ def inject_custom_style():
     st.markdown("""
     <style>
         .stApp {
-            background: linear-gradient(rgba(255,255,255,0.8), rgba(255,255,255,0.8)), 
+            background: linear-gradient(rgba(255,255,255,0.8), rgba(255,255,255,0.8)),
                         ('https://th.bing.com/th/id/OIP.hxjqE438G87V4J32XMF-BwHaE_?w=1200&h=800&rs=1&pid=ImgDetMain');
             background-size: cover;
             background-position: center;
@@ -255,10 +255,8 @@ with col1:
         
         date_input = datetime(selected_year, selected_month, selected_day).date()
         
-        st.markdown("""<div class='card'>""", unsafe_allow_html=True)
         if st.button("Generate Prediction", key="main_btn"):
             st.session_state['predict'] = True
-        st.markdown("""</div>""", unsafe_allow_html=True)
 
 def get_date_features(date):
     return {
@@ -300,29 +298,6 @@ if 'predict' in st.session_state:
                      hover_data={'date': months.strftime("%Y-%m-%d")})
         fig.update_traces(line=dict(width=3, color='#4CAF50'))
         fig.add_vline(x=date_input, line_dash="dot", line_color="red")
-        st.plotly_chart(fig, use_container_width=True)
-
-        # Seasonal Pattern Radar Chart
-        st.markdown("### 🌸 Seasonal Patterns")
-        quarters = ['Q1', 'Q2', 'Q3', 'Q4']
-        avg_sales = [df[df['Quarter'] == i]['Prediction'].mean() for i in range(1,5)]
-        
-        fig = go.Figure(data=go.Scatterpolar(
-            r=avg_sales,
-            theta=quarters,
-            fill='toself',
-            line_color='#4CAF50'
-        ))
-        fig.update_layout(
-            polar=dict(
-                radialaxis=dict(
-                    visible=True,
-                    range=[0, max(avg_sales)*1.1]
-                )
-            ),
-            showlegend=False,
-            height=300
-        )
         st.plotly_chart(fig, use_container_width=True)
 
     except Exception as e:
