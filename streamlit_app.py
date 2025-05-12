@@ -7,7 +7,6 @@ from datetime import datetime
 from streamlit.components.v1 import html
 from calendar import monthrange
 
-# Custom CSS مع التعديلات الجديدة
 def inject_custom_style():
     st.markdown("""
     <style>
@@ -31,14 +30,6 @@ def inject_custom_style():
             100% { background-position: 0% 50%; }
         }
         
-        .main-column {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            height: 100vh;
-            padding: 1rem;
-        }
-        
         .glass-card {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(12px);
@@ -60,27 +51,52 @@ def inject_custom_style():
             width: 100%;
         }
         
-        .stSlider .thumb {
-            background-color: var(--primary-color) !important;
+        .moving-shape {
+            position: fixed;
+            width: 120px;
+            height: 120px;
+            background: rgba(76, 175, 80, 0.15);
+            clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+            animation: shapeMove 12s infinite linear;
+            z-index: 9998;
+            pointer-events: none;
+            transition: all 0.5s ease;
         }
         
-        .stDateInput>div>div>input {
-            background: rgba(255, 255, 255, 0.1) !important;
-            color: white !important;
-        }
-        
-        .plot-title {
-            color: white !important;
-            font-size: 1.2rem !important;
-            margin-bottom: 1rem !important;
+        @keyframes shapeMove {
+            0% { 
+                transform: rotateY(0deg) translateZ(100px);
+                opacity: 0.8;
+            }
+            50% { 
+                transform: rotateY(180deg) translateZ(-150px);
+                opacity: 0.4;
+            }
+            100% { 
+                transform: rotateY(360deg) translateZ(100px);
+                opacity: 0.8;
+            }
         }
     </style>
     """, unsafe_allow_html=True)
     
-    # Triangle mouse effect
+    # Mouse particles and moving shape script
     html("""
     <script>
     document.addEventListener('DOMContentLoaded', () => {
+        // Add moving shape
+        const shape = document.createElement('div');
+        shape.className = 'moving-shape';
+        document.body.appendChild(shape);
+        
+        // Mouse move interaction
+        document.addEventListener('mousemove', (e) => {
+            const x = (e.clientX / window.innerWidth) * 50;
+            const y = (e.clientY / window.innerHeight) * 50;
+            shape.style.transform += `rotateX(${y}deg) rotateY(${x}deg)`;
+        });
+        
+        // Particle effect setup
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
         canvas.style.position = 'fixed';
@@ -97,12 +113,11 @@ def inject_custom_style():
             constructor(x, y) {
                 this.x = x;
                 this.y = y;
-                this.size = Math.random() * 10 + 5;
+                this.size = Math.random() * 8 + 4;
                 this.speedX = Math.random() * 1.5 - 0.75;
                 this.speedY = Math.random() * 1.5 - 0.75;
                 this.opacity = 1;
                 this.angle = Math.random() * Math.PI * 2;
-                this.rotationSpeed = Math.random() * 0.1 - 0.05;
             }
             
             update() {
@@ -110,14 +125,13 @@ def inject_custom_style():
                 this.y += this.speedY;
                 this.opacity -= 0.015;
                 this.size *= 0.97;
-                this.angle += this.rotationSpeed;
+                this.angle += 0.05;
             }
             
             draw() {
                 ctx.save();
                 ctx.translate(this.x, this.y);
                 ctx.rotate(this.angle);
-                
                 ctx.fillStyle = `rgba(76, 175, 80, ${this.opacity})`;
                 ctx.beginPath();
                 ctx.moveTo(0, -this.size);
@@ -125,23 +139,17 @@ def inject_custom_style():
                 ctx.lineTo(this.size, this.size);
                 ctx.closePath();
                 ctx.fill();
-                
                 ctx.restore();
             }
         }
         
         function animate() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            for(let i = particles.length - 1; i >= 0; i--) {
-                particles[i].update();
-                particles[i].draw();
-                
-                if(particles[i].opacity <= 0 || particles[i].size <= 0.5) {
-                    particles.splice(i, 1);
-                }
-            }
-            
+            particles.forEach((particle, index) => {
+                particle.update();
+                particle.draw();
+                if (particle.opacity <= 0) particles.splice(index, 1);
+            });
             requestAnimationFrame(animate);
         }
         
@@ -154,7 +162,7 @@ def inject_custom_style():
         resizeCanvas();
         
         document.addEventListener('mousemove', (e) => {
-            for(let i = 0; i < particleCount; i++) {
+            for (let i = 0; i < particleCount; i++) {
                 particles.push(new Particle(e.clientX, e.clientY));
             }
         });
