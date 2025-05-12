@@ -7,7 +7,7 @@ from datetime import datetime
 from streamlit.components.v1 import html
 from calendar import monthrange
 
-# Custom CSS مع تعديل السرعة وإضافة الجسيمات
+# Custom CSS مع التعديلات الجديدة
 def inject_custom_style():
     st.markdown("""
     <style>
@@ -20,7 +20,7 @@ def inject_custom_style():
         .stApp {
             background: var(--background-gradient);
             background-size: 300% 300%;
-            animation: gradient 25s ease infinite;
+            animation: gradient 30s ease infinite;
             min-height: 100vh;
             height: 100%;
         }
@@ -31,15 +31,15 @@ def inject_custom_style():
             100% { background-position: 0% 50%; }
         }
         
-        .main-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
+        .main-column {
+            display: flex;
+            flex-direction: column;
             gap: 1rem;
             height: 100vh;
             padding: 1rem;
         }
         
-        .card {
+        .glass-card {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(12px);
             border-radius: 15px;
@@ -77,7 +77,7 @@ def inject_custom_style():
     </style>
     """, unsafe_allow_html=True)
     
-    # Mouse particles effect
+    # Triangle mouse effect
     html("""
     <script>
     document.addEventListener('DOMContentLoaded', () => {
@@ -91,41 +91,56 @@ def inject_custom_style():
         document.body.appendChild(canvas);
         
         let particles = [];
-        const particleCount = 10;
+        const particleCount = 15;
         
         class Particle {
             constructor(x, y) {
                 this.x = x;
                 this.y = y;
-                this.size = Math.random() * 3 + 2;
-                this.speedX = Math.random() * 2 - 1;
-                this.speedY = Math.random() * 2 - 1;
+                this.size = Math.random() * 10 + 5;
+                this.speedX = Math.random() * 1.5 - 0.75;
+                this.speedY = Math.random() * 1.5 - 0.75;
                 this.opacity = 1;
+                this.angle = Math.random() * Math.PI * 2;
+                this.rotationSpeed = Math.random() * 0.1 - 0.05;
             }
             
             update() {
                 this.x += this.speedX;
                 this.y += this.speedY;
-                this.opacity -= 0.02;
+                this.opacity -= 0.015;
                 this.size *= 0.97;
+                this.angle += this.rotationSpeed;
             }
             
             draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.angle);
+                
                 ctx.fillStyle = `rgba(76, 175, 80, ${this.opacity})`;
                 ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.moveTo(0, -this.size);
+                ctx.lineTo(-this.size, this.size);
+                ctx.lineTo(this.size, this.size);
+                ctx.closePath();
                 ctx.fill();
+                
+                ctx.restore();
             }
         }
         
         function animate() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            particles.forEach((particle, index) => {
-                particile.update();
-                particile.draw();
-                if (particle.opacity <= 0) particles.splice(index, 1);
-            });
+            for(let i = particles.length - 1; i >= 0; i--) {
+                particles[i].update();
+                particles[i].draw();
+                
+                if(particles[i].opacity <= 0 || particles[i].size <= 0.5) {
+                    particles.splice(i, 1);
+                }
+            }
             
             requestAnimationFrame(animate);
         }
@@ -139,7 +154,7 @@ def inject_custom_style():
         resizeCanvas();
         
         document.addEventListener('mousemove', (e) => {
-            for (let i = 0; i < particleCount; i++) {
+            for(let i = 0; i < particleCount; i++) {
                 particles.push(new Particle(e.clientX, e.clientY));
             }
         });
@@ -163,8 +178,8 @@ col1, col2 = st.columns([2, 1], gap="medium")
 
 with col1:
     with st.container():
-        st.markdown("<div class='card'>", unsafe_allow_html=True)
-        st.markdown("### 📆 Annual Sales Trend", unsafe_allow_html=True)
+        st.markdown("<div class='glass-card'>", unsafe_allow_html=True)
+        st.markdown("### 📆 Annual Sales Trend")
         
         # Date selection
         date_cols = st.columns(3)
@@ -203,7 +218,7 @@ if 'predict' in st.session_state:
         # Prediction Card
         with col1:
             st.markdown(f"""
-            <div class='card'>
+            <div class='glass-card'>
                 <h3 style='color: #4CAF50;'>📅 {date_input.strftime('%Y-%m-%d')}</h3>
                 <h2 style='color: #2196F3;'>Predicted Sales: ${prediction:,.2f}</h2>
                 <p>🗓️ {date_input.strftime('%A')} | 📅 Q{date_features['Quarter']}</p>
@@ -211,7 +226,7 @@ if 'predict' in st.session_state:
             """, unsafe_allow_html=True)
             
             # Annual Trend Plot
-            st.markdown("<div class='card'>", unsafe_allow_html=True)
+            st.markdown("<div class='glass-card'>", unsafe_allow_html=True)
             months = pd.date_range(start=f"{selected_year}-01-01", end=f"{selected_year}-12-31")
             data = [get_date_features(d) for d in months]
             df = pd.DataFrame(data)
@@ -227,7 +242,7 @@ if 'predict' in st.session_state:
 
         # Feature Importance
         with col2:
-            st.markdown("<div class='card' style='height: fit-content;'>", unsafe_allow_html=True)
+            st.markdown("<div class='glass-card' style='height: fit-content;'>", unsafe_allow_html=True)
             st.markdown("### 🏆 Feature Impact")
             try:
                 features = ['Year', 'Month', 'Quarter', 'Day', 'DayOfWeek', 'DayOfYear', 'WeekOfYear']
@@ -238,7 +253,7 @@ if 'predict' in st.session_state:
                 fig.update_layout(showlegend=False, 
                                 xaxis_title='Importance Score',
                                 yaxis_title='Features',
-                                height=400)
+                                height=500)
                 st.plotly_chart(fig, use_container_width=True)
             except:
                 st.warning("Feature importance not available")
