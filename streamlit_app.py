@@ -8,206 +8,99 @@ from streamlit.components.v1 import html
 import json
 from calendar import monthrange
 
-# Custom CSS and JavaScript with enhanced effects
+# Custom CSS with dark/light mode compatibility
 def inject_custom_style():
     st.markdown("""
     <style>
+        /* Dynamic background based on theme */
+        [data-testid="stAppViewContainer"] {
+            background-color: var(--background-color);
+        }
+        
         .stApp {
-            background: linear-gradient(rgba(255,255,255,0.8), rgba(255,255,255,0.8)), 
-                        url('https://th.bing.com/th/id/OIP.hxjqE438G87V4J32XMF-BwHaE_?w=1200&h=800&rs=1&pid=ImgDetMain');
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
             background-attachment: fixed;
         }
         
-        /* Enhanced card with glow effect */
+        /* Enhanced card with theme compatibility */
         .card {
             transition: all 0.4s ease;
             border-radius: 15px;
             padding: 20px;
             margin: 10px 0;
-            background: rgba(255, 255, 255, 0.95);
-            border: 1px solid rgba(0, 0, 0, 0.1);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            box-shadow: 0 4px 15px var(--card-shadow);
         }
         
         .card:hover {
             transform: translateY(-5px) scale(1.02);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2),
-                        0 0 15px rgba(76, 175, 80, 0.3);
+            box-shadow: 0 10px 25px var(--card-shadow-hover);
         }
         
-        /* Modern button with pulse effect */
+        /* Modern button with theme compatibility */
         .stButton>button {
             border: none;
             border-radius: 25px;
             padding: 12px 28px;
             transition: all 0.4s;
-            background: linear-gradient(135deg, #4CAF50, #2E7D32);
-            color: white !important;
+            background: linear-gradient(135deg, var(--button-gradient-start), var(--button-gradient-end));
+            color: var(--button-text) !important;
             font-weight: 600;
-            box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
+            box-shadow: 0 4px 8px var(--button-shadow);
             position: relative;
             overflow: hidden;
         }
         
         .stButton>button:hover {
             transform: scale(1.05);
-            box-shadow: 0 6px 15px rgba(76, 175, 80, 0.4);
-        }
-        
-        .stButton>button:active {
-            transform: scale(0.98);
-        }
-        
-        /* Ripple effect */
-        .stButton>button:after {
-            content: "";
-            display: block;
-            position: absolute;
-            left: 50%;
-            top: 50%;
-            width: 120px;
-            height: 120px;
-            margin-left: -60px;
-            margin-top: -60px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 100%;
-            opacity: 0;
-            transform: scale(0);
-        }
-        
-        .stButton>button:active:after {
-            animation: ripple 1s ease-out;
-        }
-        
-        @keyframes ripple {
-            0% {
-                transform: scale(0);
-                opacity: 1;
-            }
-            100% {
-                transform: scale(2);
-                opacity: 0;
-            }
+            box-shadow: 0 6px 15px var(--button-shadow-hover);
         }
         
         /* Slider styling */
         .stSlider .thumb {
             width: 20px !important;
             height: 20px !important;
-            box-shadow: 0 0 5px rgba(0,0,0,0.2) !important;
         }
         
         /* Date input styling */
         .stDateInput>div>div>input {
             border-radius: 15px !important;
             padding: 12px !important;
-            border: 1px solid #ddd !important;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1) !important;
+        }
+        
+        /* Theme variables */
+        :root {
+            --background-color: #ffffff;
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --card-border: rgba(0, 0, 0, 0.1);
+            --card-shadow: rgba(0, 0, 0, 0.1);
+            --card-shadow-hover: rgba(0, 0, 0, 0.2);
+            --button-gradient-start: #4CAF50;
+            --button-gradient-end: #2E7D32;
+            --button-text: white;
+            --button-shadow: rgba(76, 175, 80, 0.3);
+            --button-shadow-hover: rgba(76, 175, 80, 0.4);
+        }
+        
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --background-color: #0e1117;
+                --card-bg: rgba(30, 30, 30, 0.95);
+                --card-border: rgba(255, 255, 255, 0.1);
+                --card-shadow: rgba(0, 0, 0, 0.3);
+                --card-shadow-hover: rgba(0, 0, 0, 0.5);
+                --button-gradient-start: #2E7D32;
+                --button-gradient-end: #1B5E20;
+                --button-text: white;
+                --button-shadow: rgba(46, 125, 50, 0.3);
+                --button-shadow-hover: rgba(46, 125, 50, 0.5);
+            }
         }
     </style>
     """, unsafe_allow_html=True)
-    
-    # Enhanced mouse particles with trail effect
-    html("""
-    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
-    <div id="particles-js" style="position:fixed;top:0;left:0;z-index:-1;"></div>
-    <script>
-        particlesJS('particles-js', {
-            particles: {
-                number: { 
-                    value: 80,
-                    density: { enable: true, value_area: 800 }
-                },
-                color: { value: "#4CAF50" },
-                shape: { type: "circle" },
-                opacity: { 
-                    value: 0.7,
-                    random: true,
-                    anim: { enable: true, speed: 1, opacity_min: 0.1 }
-                },
-                size: {
-                    value: 3,
-                    random: true,
-                    anim: { enable: true, speed: 2, size_min: 0.1 }
-                },
-                line_linked: {
-                    enable: true,
-                    distance: 150,
-                    color: "#4CAF50",
-                    opacity: 0.4,
-                    width: 1
-                },
-                move: {
-                    enable: true,
-                    speed: 3,
-                    direction: "none",
-                    random: true,
-                    straight: false,
-                    out_mode: "out",
-                    bounce: false,
-                    attract: { enable: true, rotateX: 600, rotateY: 1200 }
-                }
-            },
-            interactivity: {
-                detect_on: "canvas",
-                events: {
-                    onhover: { 
-                        enable: true, 
-                        mode: "grab",
-                        parallax: { enable: true, force: 60, smooth: 10 }
-                    },
-                    onclick: { 
-                        enable: true, 
-                        mode: "push",
-                        particles_nb: 4
-                    },
-                    resize: true
-                },
-                modes: {
-                    grab: { distance: 140, line_linked: { opacity: 1 } },
-                    bubble: { distance: 400, size: 40, duration: 2, opacity: 8 },
-                    push: { particles_nb: 4 },
-                    remove: { particles_nb: 2 }
-                }
-            },
-            retina_detect: true
-        });
-        
-        // Mouse trail effect
-        document.addEventListener('mousemove', function(e) {
-            const trail = document.createElement('div');
-            trail.className = 'mouse-trail';
-            trail.style.left = e.pageX + 'px';
-            trail.style.top = e.pageY + 'px';
-            document.body.appendChild(trail);
-            
-            setTimeout(() => {
-                trail.style.opacity = '0';
-                trail.style.transform = 'scale(2)';
-                setTimeout(() => trail.remove(), 300);
-            }, 50);
-        });
-        
-        const style = document.createElement('style');
-        style.textContent = `
-            .mouse-trail {
-                position: absolute;
-                width: 10px;
-                height: 10px;
-                background: rgba(76, 175, 80, 0.5);
-                border-radius: 50%;
-                pointer-events: none;
-                transform: translate(-50%, -50%);
-                z-index: 9999;
-                transition: all 0.3s ease-out;
-            }
-        `;
-        document.head.appendChild(style);
-    </script>
-    """)
 
 @st.cache_resource
 def load_model():
@@ -255,10 +148,8 @@ with col1:
         
         date_input = datetime(selected_year, selected_month, selected_day).date()
         
-        st.markdown("""<div class='card'>""", unsafe_allow_html=True)
         if st.button("Generate Prediction", key="main_btn"):
             st.session_state['predict'] = True
-        st.markdown("""</div>""", unsafe_allow_html=True)
 
 def get_date_features(date):
     return {
@@ -280,7 +171,7 @@ if 'predict' in st.session_state:
         
         st.markdown(f"""
         <div class='card' style='animation: fadeIn 1s;'>
-            <h3 style='color: #4CAF50;'>📅 {date_input.strftime('%Y-%m-%d')}</h3>
+            <h3 style='color: var(--button-gradient-start);'>📅 {date_input.strftime('%Y-%m-%d')}</h3>
             <h2 style='color: #2196F3;'>Predicted Sales: ${prediction:,.2f}</h2>
             <p>🗓️ {date_input.strftime('%A')} | 📅 Q{date_features['Quarter']}</p>
         </div>
@@ -295,34 +186,10 @@ if 'predict' in st.session_state:
         # Time Series Animation
         st.markdown("### 🎥 Sales Evolution")
         fig = px.line(df, x=months, y='Prediction', 
-                     template='plotly_dark',
                      labels={'y': 'Predicted Sales'},
                      hover_data={'date': months.strftime("%Y-%m-%d")})
         fig.update_traces(line=dict(width=3, color='#4CAF50'))
         fig.add_vline(x=date_input, line_dash="dot", line_color="red")
-        st.plotly_chart(fig, use_container_width=True)
-
-        # Seasonal Pattern Radar Chart
-        st.markdown("### 🌸 Seasonal Patterns")
-        quarters = ['Q1', 'Q2', 'Q3', 'Q4']
-        avg_sales = [df[df['Quarter'] == i]['Prediction'].mean() for i in range(1,5)]
-        
-        fig = go.Figure(data=go.Scatterpolar(
-            r=avg_sales,
-            theta=quarters,
-            fill='toself',
-            line_color='#4CAF50'
-        ))
-        fig.update_layout(
-            polar=dict(
-                radialaxis=dict(
-                    visible=True,
-                    range=[0, max(avg_sales)*1.1]
-                )
-            ),
-            showlegend=False,
-            height=300
-        )
         st.plotly_chart(fig, use_container_width=True)
 
     except Exception as e:
@@ -343,56 +210,3 @@ with col2:
         st.plotly_chart(fig, use_container_width=True)
     except:
         st.warning("Feature importance not available for this model")
-
-html("""
-<script>
-document.querySelectorAll('.stButton button').forEach(button => {
-    button.addEventListener('click', function() {
-        // Ripple effect
-        const ripple = document.createElement('span');
-        ripple.className = 'ripple';
-        this.appendChild(ripple);
-        
-        const x = event.clientX - event.target.getBoundingClientRect().left;
-        const y = event.clientY - event.target.getBoundingClientRect().top;
-        
-        ripple.style.left = `${x}px`;
-        ripple.style.top = `${y}px`;
-        
-        setTimeout(() => ripple.remove(), 1000);
-        
-        // Scroll to results
-        window.scrollTo({
-            top: document.documentElement.scrollHeight,
-            behavior: 'smooth'
-        });
-    });
-});
-
-document.querySelectorAll('.card').forEach(card => {
-    card.addEventListener('mouseenter', () => {
-        card.style.transform = 'translateY(-5px) scale(1.02)';
-    });
-    card.addEventListener('mouseleave', () => {
-        card.style.transform = 'none';
-    });
-});
-</script>
-<style>
-.ripple {
-    position: absolute;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.7);
-    transform: scale(0);
-    animation: ripple 0.6s linear;
-    pointer-events: none;
-}
-
-@keyframes ripple {
-    to {
-        transform: scale(4);
-        opacity: 0;
-    }
-}
-</style>
-""")
