@@ -7,7 +7,7 @@ from datetime import datetime
 from streamlit.components.v1 import html
 from calendar import monthrange
 
-# Custom CSS with smoke effect and gradient background
+# Custom CSS مع تعديل السرعة وإضافة الجسيمات
 def inject_custom_style():
     st.markdown("""
     <style>
@@ -19,8 +19,8 @@ def inject_custom_style():
         
         .stApp {
             background: var(--background-gradient);
-            background-size: 400% 400%;
-            animation: gradient 15s ease infinite;
+            background-size: 300% 300%;
+            animation: gradient 25s ease infinite;
             min-height: 100vh;
             height: 100%;
         }
@@ -41,16 +41,12 @@ def inject_custom_style():
         
         .card {
             background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(12px);
             border-radius: 15px;
             padding: 1.5rem;
             border: 1px solid rgba(255, 255, 255, 0.2);
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease;
-        }
-        
-        .card:hover {
-            transform: translateY(-5px);
+            margin-bottom: 1rem;
         }
         
         .stButton>button {
@@ -61,11 +57,7 @@ def inject_custom_style():
             padding: 12px 24px;
             font-size: 16px;
             transition: all 0.3s ease;
-        }
-        
-        .stButton>button:hover {
-            background: rgba(76, 175, 80, 1);
-            transform: scale(1.05);
+            width: 100%;
         }
         
         .stSlider .thumb {
@@ -76,10 +68,16 @@ def inject_custom_style():
             background: rgba(255, 255, 255, 0.1) !important;
             color: white !important;
         }
+        
+        .plot-title {
+            color: white !important;
+            font-size: 1.2rem !important;
+            margin-bottom: 1rem !important;
+        }
     </style>
     """, unsafe_allow_html=True)
     
-    # Smoke mouse effect
+    # Mouse particles effect
     html("""
     <script>
     document.addEventListener('DOMContentLoaded', () => {
@@ -93,22 +91,22 @@ def inject_custom_style():
         document.body.appendChild(canvas);
         
         let particles = [];
-        const particleCount = 20;
+        const particleCount = 10;
         
         class Particle {
             constructor(x, y) {
                 this.x = x;
                 this.y = y;
-                this.size = Math.random() * 10 + 5;
-                this.speedX = Math.random() * 3 - 1.5;
-                this.speedY = Math.random() * 3 - 1.5;
+                this.size = Math.random() * 3 + 2;
+                this.speedX = Math.random() * 2 - 1;
+                this.speedY = Math.random() * 2 - 1;
                 this.opacity = 1;
             }
             
             update() {
                 this.x += this.speedX;
                 this.y += this.speedY;
-                this.opacity -= 0.03;
+                this.opacity -= 0.02;
                 this.size *= 0.97;
             }
             
@@ -124,8 +122,8 @@ def inject_custom_style():
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
             particles.forEach((particle, index) => {
-                particle.update();
-                particle.draw();
+                particile.update();
+                particile.draw();
                 if (particle.opacity <= 0) particles.splice(index, 1);
             });
             
@@ -160,27 +158,27 @@ model = load_model()
 inject_custom_style()
 st.title("📈 Intelligent Sales Forecasting System")
 
-# Main container with grid layout
-main_col1, main_col2 = st.columns([2, 1], gap="medium")
+# Main layout
+col1, col2 = st.columns([2, 1], gap="medium")
 
-with main_col1:
+with col1:
     with st.container():
         st.markdown("<div class='card'>", unsafe_allow_html=True)
-        col_year, col_month, col_day = st.columns(3)
+        st.markdown("### 📆 Annual Sales Trend", unsafe_allow_html=True)
         
-        with col_year:
+        # Date selection
+        date_cols = st.columns(3)
+        with date_cols[0]:
             selected_year = st.slider("Year", 2020, 2030, datetime.now().year)
-        
-        with col_month:
+        with date_cols[1]:
             selected_month = st.slider("Month", 1, 12, datetime.now().month)
-        
-        with col_day:
+        with date_cols[2]:
             _, last_day = monthrange(selected_year, selected_month)
             selected_day = st.slider("Day", 1, last_day, datetime.now().day)
         
         date_input = datetime(selected_year, selected_month, selected_day).date()
         
-        if st.button("Generate Prediction", key="predict_btn"):
+        if st.button("Generate Prediction"):
             st.session_state['predict'] = True
         st.markdown("</div>", unsafe_allow_html=True)
 
@@ -202,36 +200,18 @@ if 'predict' in st.session_state:
     try:
         prediction = model.predict(input_df)[0]
         
-        with main_col1:
+        # Prediction Card
+        with col1:
             st.markdown(f"""
-            <div class='card' style='margin-top: 1rem;'>
+            <div class='card'>
                 <h3 style='color: #4CAF50;'>📅 {date_input.strftime('%Y-%m-%d')}</h3>
                 <h2 style='color: #2196F3;'>Predicted Sales: ${prediction:,.2f}</h2>
                 <p>🗓️ {date_input.strftime('%A')} | 📅 Q{date_features['Quarter']}</p>
             </div>
             """, unsafe_allow_html=True)
-
-        with main_col2:
-            st.markdown("<div class='card' style='height: 400px;'>", unsafe_allow_html=True)
-            st.markdown("### 🏆 Feature Impact")
-            try:
-                features = ['Year', 'Month', 'Quarter', 'Day', 'DayOfWeek', 'DayOfYear', 'WeekOfYear']
-                importances = model.feature_importances_
-                
-                fig = px.bar(x=importances, y=features, orientation='h',
-                            color=importances, color_continuous_scale='Teal')
-                fig.update_layout(showlegend=False, 
-                                xaxis_title='Importance Score',
-                                yaxis_title='Features',
-                                height=350)
-                st.plotly_chart(fig, use_container_width=True)
-            except:
-                st.warning("Feature importance not available")
-            st.markdown("</div>", unsafe_allow_html=True)
-
-        with main_col1:
-            st.markdown("<div class='card' style='margin-top: 1rem;'>", unsafe_allow_html=True)
-            st.markdown("### 📆 Annual Sales Trend")
+            
+            # Annual Trend Plot
+            st.markdown("<div class='card'>", unsafe_allow_html=True)
             months = pd.date_range(start=f"{selected_year}-01-01", end=f"{selected_year}-12-31")
             data = [get_date_features(d) for d in months]
             df = pd.DataFrame(data)
@@ -245,13 +225,33 @@ if 'predict' in st.session_state:
             st.plotly_chart(fig, use_container_width=True)
             st.markdown("</div>", unsafe_allow_html=True)
 
+        # Feature Importance
+        with col2:
+            st.markdown("<div class='card' style='height: fit-content;'>", unsafe_allow_html=True)
+            st.markdown("### 🏆 Feature Impact")
+            try:
+                features = ['Year', 'Month', 'Quarter', 'Day', 'DayOfWeek', 'DayOfYear', 'WeekOfYear']
+                importances = model.feature_importances_
+                
+                fig = px.bar(x=importances, y=features, orientation='h',
+                            color=importances, color_continuous_scale='Teal')
+                fig.update_layout(showlegend=False, 
+                                xaxis_title='Importance Score',
+                                yaxis_title='Features',
+                                height=400)
+                st.plotly_chart(fig, use_container_width=True)
+            except:
+                st.warning("Feature importance not available")
+            st.markdown("</div>", unsafe_allow_html=True)
+
     except Exception as e:
         st.error(f"Prediction Error: {str(e)}")
 
+# Hide scrollbar
 html("""
 <style>
     .st-emotion-cache-1dp5vir { display: none; }
+    section.main { overflow: hidden !important; }
     .stScrollable { overflow: visible !important; }
-    section.main { overflow: visible !important; }
 </style>
 """)
