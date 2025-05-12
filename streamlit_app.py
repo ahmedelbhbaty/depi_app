@@ -302,23 +302,25 @@ if 'predict' in st.session_state:
         fig.add_vline(x=date_input, line_dash="dot", line_color="red")
         st.plotly_chart(fig, use_container_width=True)
 
-       
+    ...
+    st.plotly_chart(fig, use_container_width=True)
 
-with col2:
-    st.markdown("### 🏆 Feature Impact")
-    try:
-        features = ['Year', 'Month', 'Quarter', 'Day', 'DayOfWeek', 'DayOfYear', 'WeekOfYear']
-        importances = model.feature_importances_
-        
-        fig = px.bar(x=importances, y=features, orientation='h',
-                    color=importances, color_continuous_scale='Bluered')
-        fig.update_layout(showlegend=False, 
-                         xaxis_title='Importance Score',
-                         yaxis_title='Features',
-                         height=400)
-        st.plotly_chart(fig, use_container_width=True)
-    except:
-        st.warning("Feature importance not available for this model")
+    with col2:
+        st.markdown("### 🏆 Feature Impact")
+        try:
+            features = ['Year', 'Month', 'Quarter', 'Day', 'DayOfWeek', 'DayOfYear', 'WeekOfYear']
+            importances = model.feature_importances_
+
+            fig = px.bar(x=importances, y=features, orientation='h',
+                        color=importances, color_continuous_scale='Bluered')
+            fig.update_layout(showlegend=False, 
+                            xaxis_title='Importance Score',
+                            yaxis_title='Features',
+                            height=400)
+            st.plotly_chart(fig, use_container_width=True)
+        except:
+            st.warning("Feature importance not available for this model")
+
 
 html("""
 <script>
