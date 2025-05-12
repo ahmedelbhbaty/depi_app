@@ -5,102 +5,151 @@ import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime
 from streamlit.components.v1 import html
-import json
 from calendar import monthrange
 
-# Custom CSS with dark/light mode compatibility
+# Custom CSS with smoke effect and gradient background
 def inject_custom_style():
     st.markdown("""
     <style>
-        /* Dynamic background based on theme */
-        [data-testid="stAppViewContainer"] {
-            background-color: var(--background-color);
+        :root {
+            --primary-color: #4CAF50;
+            --secondary-color: #2196F3;
+            --background-gradient: linear-gradient(135deg, #1a1a1a, #2d4059, #4CAF50);
         }
         
         .stApp {
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-attachment: fixed;
+            background: var(--background-gradient);
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
+            min-height: 100vh;
+            height: 100%;
         }
         
-        /* Enhanced card with theme compatibility */
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .main-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            height: 100vh;
+            padding: 1rem;
+        }
+        
         .card {
-            transition: all 0.4s ease;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
             border-radius: 15px;
-            padding: 20px;
-            margin: 10px 0;
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            box-shadow: 0 4px 15px var(--card-shadow);
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
         }
         
         .card:hover {
-            transform: translateY(-5px) scale(1.02);
-            box-shadow: 0 10px 25px var(--card-shadow-hover);
+            transform: translateY(-5px);
         }
         
-        /* Modern button with theme compatibility */
         .stButton>button {
+            background: rgba(76, 175, 80, 0.8);
+            color: white;
             border: none;
-            border-radius: 25px;
-            padding: 12px 28px;
-            transition: all 0.4s;
-            background: linear-gradient(135deg, var(--button-gradient-start), var(--button-gradient-end));
-            color: var(--button-text) !important;
-            font-weight: 600;
-            box-shadow: 0 4px 8px var(--button-shadow);
-            position: relative;
-            overflow: hidden;
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-size: 16px;
+            transition: all 0.3s ease;
         }
         
         .stButton>button:hover {
+            background: rgba(76, 175, 80, 1);
             transform: scale(1.05);
-            box-shadow: 0 6px 15px var(--button-shadow-hover);
         }
         
-        /* Slider styling */
         .stSlider .thumb {
-            width: 20px !important;
-            height: 20px !important;
+            background-color: var(--primary-color) !important;
         }
         
-        /* Date input styling */
         .stDateInput>div>div>input {
-            border-radius: 15px !important;
-            padding: 12px !important;
-        }
-        
-        /* Theme variables */
-        :root {
-            --background-color: #ffffff;
-            --card-bg: rgba(255, 255, 255, 0.95);
-            --card-border: rgba(0, 0, 0, 0.1);
-            --card-shadow: rgba(0, 0, 0, 0.1);
-            --card-shadow-hover: rgba(0, 0, 0, 0.2);
-            --button-gradient-start: #4CAF50;
-            --button-gradient-end: #2E7D32;
-            --button-text: white;
-            --button-shadow: rgba(76, 175, 80, 0.3);
-            --button-shadow-hover: rgba(76, 175, 80, 0.4);
-        }
-        
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --background-color: #0e1117;
-                --card-bg: rgba(30, 30, 30, 0.95);
-                --card-border: rgba(255, 255, 255, 0.1);
-                --card-shadow: rgba(0, 0, 0, 0.3);
-                --card-shadow-hover: rgba(0, 0, 0, 0.5);
-                --button-gradient-start: #2E7D32;
-                --button-gradient-end: #1B5E20;
-                --button-text: white;
-                --button-shadow: rgba(46, 125, 50, 0.3);
-                --button-shadow-hover: rgba(46, 125, 50, 0.5);
-            }
+            background: rgba(255, 255, 255, 0.1) !important;
+            color: white !important;
         }
     </style>
     """, unsafe_allow_html=True)
+    
+    # Smoke mouse effect
+    html("""
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.style.position = 'fixed';
+        canvas.style.top = '0';
+        canvas.style.left = '0';
+        canvas.style.zIndex = '9999';
+        canvas.style.pointerEvents = 'none';
+        document.body.appendChild(canvas);
+        
+        let particles = [];
+        const particleCount = 20;
+        
+        class Particle {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.size = Math.random() * 10 + 5;
+                this.speedX = Math.random() * 3 - 1.5;
+                this.speedY = Math.random() * 3 - 1.5;
+                this.opacity = 1;
+            }
+            
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                this.opacity -= 0.03;
+                this.size *= 0.97;
+            }
+            
+            draw() {
+                ctx.fillStyle = `rgba(76, 175, 80, ${this.opacity})`;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+        
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            particles.forEach((particle, index) => {
+                particle.update();
+                particle.draw();
+                if (particle.opacity <= 0) particles.splice(index, 1);
+            });
+            
+            requestAnimationFrame(animate);
+        }
+        
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+        
+        document.addEventListener('mousemove', (e) => {
+            for (let i = 0; i < particleCount; i++) {
+                particles.push(new Particle(e.clientX, e.clientY));
+            }
+        });
+        
+        animate();
+    });
+    </script>
+    """)
 
 @st.cache_resource
 def load_model():
@@ -110,46 +159,30 @@ model = load_model()
 
 inject_custom_style()
 st.title("📈 Intelligent Sales Forecasting System")
-st.markdown("Explore future sales predictions with our AI-powered forecasting engine")
 
-col1, col2 = st.columns([2, 1])
+# Main container with grid layout
+main_col1, main_col2 = st.columns([2, 1], gap="medium")
 
-with col1:
-    with st.expander("🔮 Prediction Controls", expanded=True):
+with main_col1:
+    with st.container():
+        st.markdown("<div class='card'>", unsafe_allow_html=True)
         col_year, col_month, col_day = st.columns(3)
         
         with col_year:
-            selected_year = st.slider(
-                "Year",
-                min_value=2020,
-                max_value=2030,
-                value=datetime.now().year,
-                key="year_slider"
-            )
+            selected_year = st.slider("Year", 2020, 2030, datetime.now().year)
         
         with col_month:
-            selected_month = st.slider(
-                "Month",
-                min_value=1,
-                max_value=12,
-                value=datetime.now().month,
-                key="month_slider"
-            )
+            selected_month = st.slider("Month", 1, 12, datetime.now().month)
         
         with col_day:
             _, last_day = monthrange(selected_year, selected_month)
-            selected_day = st.slider(
-                "Day",
-                min_value=1,
-                max_value=last_day,
-                value=datetime.now().day,
-                key="day_slider"
-            )
+            selected_day = st.slider("Day", 1, last_day, datetime.now().day)
         
         date_input = datetime(selected_year, selected_month, selected_day).date()
         
-        if st.button("Generate Prediction", key="main_btn"):
+        if st.button("Generate Prediction", key="predict_btn"):
             st.session_state['predict'] = True
+        st.markdown("</div>", unsafe_allow_html=True)
 
 def get_date_features(date):
     return {
@@ -169,44 +202,56 @@ if 'predict' in st.session_state:
     try:
         prediction = model.predict(input_df)[0]
         
-        st.markdown(f"""
-        <div class='card' style='animation: fadeIn 1s;'>
-            <h3 style='color: var(--button-gradient-start);'>📅 {date_input.strftime('%Y-%m-%d')}</h3>
-            <h2 style='color: #2196F3;'>Predicted Sales: ${prediction:,.2f}</h2>
-            <p>🗓️ {date_input.strftime('%A')} | 📅 Q{date_features['Quarter']}</p>
-        </div>
-        """, unsafe_allow_html=True)
+        with main_col1:
+            st.markdown(f"""
+            <div class='card' style='margin-top: 1rem;'>
+                <h3 style='color: #4CAF50;'>📅 {date_input.strftime('%Y-%m-%d')}</h3>
+                <h2 style='color: #2196F3;'>Predicted Sales: ${prediction:,.2f}</h2>
+                <p>🗓️ {date_input.strftime('%A')} | 📅 Q{date_features['Quarter']}</p>
+            </div>
+            """, unsafe_allow_html=True)
 
-        # Generate full year data for visualizations
-        months = pd.date_range(start=f"{selected_year}-01-01", end=f"{selected_year}-12-31")
-        data = [get_date_features(d) for d in months]
-        df = pd.DataFrame(data)
-        df['Prediction'] = model.predict(df)
+        with main_col2:
+            st.markdown("<div class='card' style='height: 400px;'>", unsafe_allow_html=True)
+            st.markdown("### 🏆 Feature Impact")
+            try:
+                features = ['Year', 'Month', 'Quarter', 'Day', 'DayOfWeek', 'DayOfYear', 'WeekOfYear']
+                importances = model.feature_importances_
+                
+                fig = px.bar(x=importances, y=features, orientation='h',
+                            color=importances, color_continuous_scale='Teal')
+                fig.update_layout(showlegend=False, 
+                                xaxis_title='Importance Score',
+                                yaxis_title='Features',
+                                height=350)
+                st.plotly_chart(fig, use_container_width=True)
+            except:
+                st.warning("Feature importance not available")
+            st.markdown("</div>", unsafe_allow_html=True)
 
-        # Time Series Animation
-        st.markdown("### 🎥 Sales Evolution")
-        fig = px.line(df, x=months, y='Prediction', 
-                     labels={'y': 'Predicted Sales'},
-                     hover_data={'date': months.strftime("%Y-%m-%d")})
-        fig.update_traces(line=dict(width=3, color='#4CAF50'))
-        fig.add_vline(x=date_input, line_dash="dot", line_color="red")
-        st.plotly_chart(fig, use_container_width=True)
+        with main_col1:
+            st.markdown("<div class='card' style='margin-top: 1rem;'>", unsafe_allow_html=True)
+            st.markdown("### 📆 Annual Sales Trend")
+            months = pd.date_range(start=f"{selected_year}-01-01", end=f"{selected_year}-12-31")
+            data = [get_date_features(d) for d in months]
+            df = pd.DataFrame(data)
+            df['Prediction'] = model.predict(df)
+            
+            fig = px.line(df, x=months, y='Prediction', 
+                         labels={'y': 'Predicted Sales'},
+                         line_shape='spline')
+            fig.update_traces(line=dict(width=3, color='#4CAF50'))
+            fig.add_vline(x=date_input, line_dash="dot", line_color="red")
+            st.plotly_chart(fig, use_container_width=True)
+            st.markdown("</div>", unsafe_allow_html=True)
 
     except Exception as e:
         st.error(f"Prediction Error: {str(e)}")
 
-with col2:
-    st.markdown("### 🏆 Feature Impact")
-    try:
-        features = ['Year', 'Month', 'Quarter', 'Day', 'DayOfWeek', 'DayOfYear', 'WeekOfYear']
-        importances = model.feature_importances_
-        
-        fig = px.bar(x=importances, y=features, orientation='h',
-                    color=importances, color_continuous_scale='Bluered')
-        fig.update_layout(showlegend=False, 
-                         xaxis_title='Importance Score',
-                         yaxis_title='Features',
-                         height=400)
-        st.plotly_chart(fig, use_container_width=True)
-    except:
-        st.warning("Feature importance not available for this model")
+html("""
+<style>
+    .st-emotion-cache-1dp5vir { display: none; }
+    .stScrollable { overflow: visible !important; }
+    section.main { overflow: visible !important; }
+</style>
+""")
