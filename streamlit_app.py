@@ -302,31 +302,7 @@ if 'predict' in st.session_state:
         fig.add_vline(x=date_input, line_dash="dot", line_color="red")
         st.plotly_chart(fig, use_container_width=True)
 
-        # Seasonal Pattern Radar Chart
-        st.markdown("### 🌸 Seasonal Patterns")
-        quarters = ['Q1', 'Q2', 'Q3', 'Q4']
-        avg_sales = [df[df['Quarter'] == i]['Prediction'].mean() for i in range(1,5)]
-        
-        fig = go.Figure(data=go.Scatterpolar(
-            r=avg_sales,
-            theta=quarters,
-            fill='toself',
-            line_color='#4CAF50'
-        ))
-        fig.update_layout(
-            polar=dict(
-                radialaxis=dict(
-                    visible=True,
-                    range=[0, max(avg_sales)*1.1]
-                )
-            ),
-            showlegend=False,
-            height=300
-        )
-        st.plotly_chart(fig, use_container_width=True)
-
-    except Exception as e:
-        st.error(f"Prediction Error: {str(e)}")
+       
 
 with col2:
     st.markdown("### 🏆 Feature Impact")
